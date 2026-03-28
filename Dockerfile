@@ -1,7 +1,7 @@
 FROM node:20.12.2-alpine AS builder
 WORKDIR /usr/src
 COPY . .
-RUN corepack enable
+RUN npm install -g pnpm@10.30.3
 RUN pnpm install
 RUN pnpm run build
 
