@@ -1,22 +1,39 @@
-version: '3'
-
 services:
   newsnow:
     image: ghcr.io/ourongxing/newsnow:latest
     container_name: newsnow
+    restart: unless-stopped
+    init: true
     ports:
       - '4444:4444'
     volumes:
       - newsnow_data:/usr/app/.data
     environment:
-      - HOST=0.0.0.0
-      - PORT=4444
-      - NODE_ENV=production
-      - G_CLIENT_ID=
-      - G_CLIENT_SECRET=
-      - JWT_SECRET=
-      - INIT_TABLE=true
-      - ENABLE_CACHE=true
+      HOST: 0.0.0.0
+      PORT: 4444
+      NODE_ENV: production
+      G_CLIENT_ID: ${G_CLIENT_ID:-}
+      G_CLIENT_SECRET: ${G_CLIENT_SECRET:-}
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      INIT_TABLE: ${INIT_TABLE:-false}
+      ENABLE_CACHE: ${ENABLE_CACHE:-true}
+      PRODUCTHUNT_API_TOKEN: ${PRODUCTHUNT_API_TOKEN:-}
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - const http=require('node:http');const req=http.get('http://127.0.0.1:4444/',(res)=>process.exit(res.statusCode&&res.statusCode<500?0:1));req.on('error',()=>process.exit(1));req.setTimeout(5000,()=>{req.destroy();process.exit(1)})
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+    stop_grace_period: 30s
 
 volumes:
   newsnow_data:
